@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfect Pitch Trainer</title>
+  <script src="https://unpkg.com/tone"></script>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f4f4f4;
+      font-family: sans-serif;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      width: 720px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+
+    .play-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      background: #222;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 32px;
+    }
+
+    .play-btn:hover {
+      opacity: 0.9;
+    }
+
+    .piano {
+      position: relative;
+      width: 630px;
+      height: 220px;
+      margin: 0 auto;
+    }
+
+    .white-keys {
+      display: flex;
+      position: absolute;
+      z-index: 1;
+    }
+
+    .white {
+      width: 90px;
+      height: 220px;
+      background: white;
+      border: 2px solid #333;
+      box-sizing: border-box;
+      border-radius: 0 0 10px 10px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 16px;
+      font-size: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .white:active {
+      background: #ddd;
+    }
+
+    .black {
+      position: absolute;
+      width: 60px;
+      height: 130px;
+      background: #222;
+      color: white;
+      border-radius: 0 0 8px 8px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      user-select: none;
+      z-index: 2;
+    }
+
+    .black:active {
+      background: #555;
+    }
+
+    .result {
+      margin-top: 28px;
+      font-size: 22px;
+      font-weight: bold;
+      min-height: 32px;
+    }
+
+    .score {
+      margin-top: 10px;
+      color: #555;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Perfect Pitch Trainer</h1>
+
+    <button class="play-btn" onclick="playRandomNote()">
+      ▶ Play Note
+    </button>
+
+    <div class="piano">
+
+      <!-- White Keys -->
+      <div class="white-keys">
+        <div class="white" onclick="guess('C')">C</div>
+        <div class="white" onclick="guess('D')">D</div>
+        <div class="white" onclick="guess('E')">E</div>
+        <div class="white" onclick="guess('F')">F</div>
+        <div class="white" onclick="guess('G')">G</div>
+        <div class="white" onclick="guess('A')">A</div>
+        <div class="white" onclick="guess('B')">B</div>
+      </div>
+
+      <!-- Black Keys -->
+      <div class="black" style="left: 60px;" onclick="guess('C#')">C#</div>
+      <div class="black" style="left: 150px;" onclick="guess('D#')">D#</div>
+
+      <div class="black" style="left: 330px;" onclick="guess('F#')">F#</div>
+      <div class="black" style="left: 420px;" onclick="guess('G#')">G#</div>
+      <div class="black" style="left: 510px;" onclick="guess('A#')">A#</div>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="score" id="score">Correct: 0 / 0</div>
+  </div>
+
+  <script>
+    const noteNames = [
+      "C", "C#", "D", "D#", "E",
+      "F", "F#", "G", "G#", "A", "A#", "B"
+    ];
+
+    const sampler = new Tone.Sampler({
+  urls: {
+    A0: "A0.mp3",
+    C1: "C1.mp3",
+    "D#1": "Ds1.mp3",
+    "F#1": "Fs1.mp3",
+    A1: "A1.mp3",
+    C2: "C2.mp3",
+    "D#2": "Ds2.mp3",
+    "F#2": "Fs2.mp3",
+    A2: "A2.mp3",
+    C3: "C3.mp3",
+    "D#3": "Ds3.mp3",
+    "F#3": "Fs3.mp3",
+    A3: "A3.mp3",
+    C4: "C4.mp3",
+    "D#4": "Ds4.mp3",
+    "F#4": "Fs4.mp3",
+    A4: "A4.mp3",
+    C5: "C5.mp3",
+    "D#5": "Ds5.mp3",
+    "F#5": "Fs5.mp3",
+    A5: "A5.mp3",
+    C6: "C6.mp3",
+    "D#6": "Ds6.mp3",
+    "F#6": "Fs6.mp3",
+    A6: "A6.mp3",
+    C7: "C7.mp3",
+    A7: "A7.mp3",
+    C8: "C8.mp3"
+  },
+
+  release: 1,
+  baseUrl: "https://tonejs.github.io/audio/salamander/"
+}).toDestination();
+
+    let currentAnswer = "";
+    let total = 0;
+    let correct = 0;
+
+    function midiToFreq(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    function playNote(noteName) {
+  sampler.triggerAttackRelease(noteName, 2);
+}
+    function playRandomNote() {
+      document.getElementById("result").textContent = "";
+
+      // C3(48) ～ C7(96)
+      const midi = Math.floor(Math.random() * (96 - 48 + 1)) + 48;
+
+      const noteIndex = midi % 12;
+      currentAnswer = noteNames[noteIndex];
+
+      const octave = Math.floor(midi / 12) - 1;
+const note = noteNames[noteIndex] + octave;
+
+playNote(note);
+    }
+
+    function guess(note) {
+      total++;
+
+      const result = document.getElementById("result");
+
+      if (note === currentAnswer) {
+        correct++;
+        result.textContent = "Correct!";
+        result.style.color = "#2e8b57";
+      } else {
+        result.textContent = `Wrong... Answer: ${currentAnswer}`;
+        result.style.color = "#cc3333";
+      }
+
+      document.getElementById("score").textContent =
+        `Correct: ${correct} / ${total}`;
+    }
+  </script>
+</body>
+</html>
