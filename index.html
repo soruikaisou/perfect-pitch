@@ -22,7 +22,8 @@
       padding: 30px;
       border-radius: 18px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      width: 720px;
+      width: 95%;
+      max-width: 420px;
       text-align: center;
     }
 
@@ -49,8 +50,8 @@
 
     .piano {
       position: relative;
-      width: 630px;
-      height: 220px;
+      width: 350px;
+      height: 140px;
       margin: 0 auto;
     }
 
@@ -61,8 +62,8 @@
     }
 
     .white {
-      width: 90px;
-      height: 220px;
+      width: 50px;
+      height: 140px;
       background: white;
       border: 2px solid #333;
       box-sizing: border-box;
@@ -70,8 +71,8 @@
       display: flex;
       justify-content: center;
       align-items: flex-end;
-      padding-bottom: 16px;
-      font-size: 20px;
+      padding-bottom: 10px;
+      font-size: 16px;
       cursor: pointer;
       user-select: none;
     }
@@ -82,16 +83,16 @@
 
     .black {
       position: absolute;
-      width: 60px;
-      height: 130px;
+      width: 34px;
+      height: 80px;
       background: #222;
       color: white;
       border-radius: 0 0 8px 8px;
       display: flex;
       justify-content: center;
       align-items: flex-end;
-      padding-bottom: 12px;
-      font-size: 16px;
+      padding-bottom: 8px;
+      font-size: 12px;
       cursor: pointer;
       user-select: none;
       z-index: 2;
@@ -138,12 +139,12 @@
       </div>
 
       <!-- Black Keys -->
-      <div class="black" style="left: 60px;" onclick="guess('C#')">C#</div>
-      <div class="black" style="left: 150px;" onclick="guess('D#')">D#</div>
+      <div class="black" style="left: 34px;" onclick="guess('C#')">C#</div>
+      <div class="black" style="left: 84px;" onclick="guess('D#')">D#</div>
 
-      <div class="black" style="left: 330px;" onclick="guess('F#')">F#</div>
-      <div class="black" style="left: 420px;" onclick="guess('G#')">G#</div>
-      <div class="black" style="left: 510px;" onclick="guess('A#')">A#</div>
+      <div class="black" style="left: 184px;" onclick="guess('F#')">F#</div>
+      <div class="black" style="left: 234px;" onclick="guess('G#')">G#</div>
+      <div class="black" style="left: 284px;" onclick="guess('A#')">A#</div>
     </div>
 
     <div class="result" id="result"></div>
