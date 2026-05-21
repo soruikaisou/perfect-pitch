@@ -115,11 +115,41 @@
       font-size: 18px;
     }
 	
-	.settings-panel {
-      margin-top: 20px;
-      padding: 16px;
-      border-radius: 12px;
-      background: #f0f0f0;
+    .settings-panel {
+      position: fixed;
+
+      top: 50%;
+      left: 50%;
+
+      transform: translate(-50%, -50%);
+
+      width: 300px;
+
+      padding: 20px;
+
+      border-radius: 16px;
+
+      background: white;
+
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+
+      z-index: 1000;
+
+      display: none;
+    }
+	
+	.overlay {
+      position: fixed;
+
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      background: rgba(0,0,0,0.4);
+
+      z-index: 999;
 
       display: none;
     }
@@ -127,6 +157,9 @@
 </head>
 
 <body>
+
+  <div id="overlay" class="overlay" onclick="toggleSettings()"></div>
+
   <div class="container">
     <h1>Perfect Pitch Trainer</h1>
 
@@ -177,28 +210,46 @@
       <button onclick="setRange(72, 96)">High</button>
       <button onclick="setRange(48, 96)">Full</button>
 
+      <br><br>
+
+      <label>Notation</label><br>
+
+      <button onclick="setNotation('english')">
+        English
+      </button>
+
+      <button onclick="setNotation('german')">
+        German
+      </button>
+
+      <button onclick="setNotation('italian')">
+        Italian
+      </button>
     </div>
 	
 	<div class="piano">
 
       <!-- White Keys -->
       <div class="white-keys">
-        <div class="white" onclick="guess('C')">C</div>
-        <div class="white" onclick="guess('D')">D</div>
-        <div class="white" onclick="guess('E')">E</div>
-        <div class="white" onclick="guess('F')">F</div>
-        <div class="white" onclick="guess('G')">G</div>
-        <div class="white" onclick="guess('A')">A</div>
-        <div class="white" onclick="guess('B')">B</div>
+        <div class="white" data-note="0" onclick="guess('C')">C</div>
+        <div class="white" data-note="2" onclick="guess('D')">D</div>
+        <div class="white" data-note="4" onclick="guess('E')">E</div>
+        <div class="white" data-note="5" onclick="guess('F')">F</div>
+        <div class="white" data-note="7" onclick="guess('G')">G</div>
+        <div class="white" data-note="9" onclick="guess('A')">A</div>
+        <div class="white" data-note="11" onclick="guess('B')">B</div>
       </div>
 
       <!-- Black Keys -->
-      <div class="black black-key" style="left: 34px;" onclick="guess('C#')">C#</div>
-      <div class="black black-key" style="left: 84px;" onclick="guess('D#')">D#</div>
+      <div class="black black-key" data-note="1" style="left: 34px;" onclick="guess('C#')">C#</div>
 
-      <div class="black black-key" style="left: 184px;" onclick="guess('F#')">F#</div>
-      <div class="black black-key" style="left: 234px;" onclick="guess('G#')">G#</div>
-      <div class="black black-key" style="left: 284px;" onclick="guess('A#')">A#</div>
+      <div class="black black-key" data-note="3" style="left: 84px;" onclick="guess('D#')">D#</div>
+
+      <div class="black black-key" data-note="6" style="left: 184px;" onclick="guess('F#')">F#</div>
+
+      <div class="black black-key" data-note="8" style="left: 234px;" onclick="guess('G#')">G#</div>
+
+      <div class="black black-key" data-note="10" style="left: 284px;" onclick="guess('A#')">A#</div>      
     </div>
 
     <div class="result" id="result"></div>
@@ -210,6 +261,23 @@
       "C", "C#", "D", "D#", "E",
       "F", "F#", "G", "G#", "A", "A#", "B"
     ];
+	
+	const noteLabels = {
+      english: [
+        "C","C#","D","D#","E",
+        "F","F#","G","G#","A","A#","B"
+      ],
+
+      german: [
+        "C","Cis","D","Dis","E",
+        "F","Fis","G","Gis","A","Ais","H"
+      ],
+
+      italian: [
+        "Do","Do#","Re","Re#","Mi",
+        "Fa","Fa#","Sol","Sol#","La","La#","Si"
+      ]
+    };
 
     const sampler = new Tone.Sampler({
   urls: {
@@ -250,6 +318,7 @@
     let currentAnswer = "";
 	let currentNote = "";
 	let volume = 0.8;
+	let notation = "english";
 	let includeBlackKeys = true;
 	let minMidi = 48; // C3
     let maxMidi = 96; // C7
@@ -365,13 +434,20 @@
         `Correct: ${correct} / ${total}`;
     }
 	
-	function toggleSettings() {
+    function toggleSettings() {
       const panel = document.getElementById("settings");
 
+      const overlay = document.getElementById("overlay");
+
       if (panel.style.display === "block") {
+
         panel.style.display = "none";
+        overlay.style.display = "none";
+
       } else {
+
         panel.style.display = "block";
+        overlay.style.display = "block";
       }
     }
 
@@ -383,6 +459,18 @@
       if (currentNote !== "") {
         playNote(currentNote);
       }
+    }
+	
+    function setNotation(type) {
+      notation = type;
+
+      const keys = document.querySelectorAll("[data-note]");
+
+      keys.forEach(key => {
+        const index = Number(key.dataset.note);
+
+        key.textContent = noteLabels[type][index];
+      });
     }
   </script>
 </body>
