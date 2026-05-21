@@ -124,8 +124,35 @@
     <button class="play-btn" onclick="playRandomNote()">
       ▶ Play Note
     </button>
+	
+	<button class="play-btn" onclick="replayNote()">
+      ↻ Replay
+    </button>
+	
+	<div style="margin-bottom: 20px;">
+      <button onclick="setMode(false)">White Keys Only</button>
+      <button onclick="setMode(true)">All Notes</button>
+    </div>
 
-    <div class="piano">
+    <div style="margin-bottom: 20px;">
+      <button onclick="setRange(48, 59)">
+        Low
+      </button>
+
+      <button onclick="setRange(60, 71)">
+        Mid
+      </button>
+
+      <button onclick="setRange(72, 96)">
+        High
+      </button>
+
+      <button onclick="setRange(48, 96)">
+        Full
+      </button>
+    </div>
+	
+	<div class="piano">
 
       <!-- White Keys -->
       <div class="white-keys">
@@ -139,12 +166,12 @@
       </div>
 
       <!-- Black Keys -->
-      <div class="black" style="left: 34px;" onclick="guess('C#')">C#</div>
-      <div class="black" style="left: 84px;" onclick="guess('D#')">D#</div>
+      <div class="black black-key" style="left: 34px;" onclick="guess('C#')">C#</div>
+      <div class="black black-key" style="left: 84px;" onclick="guess('D#')">D#</div>
 
-      <div class="black" style="left: 184px;" onclick="guess('F#')">F#</div>
-      <div class="black" style="left: 234px;" onclick="guess('G#')">G#</div>
-      <div class="black" style="left: 284px;" onclick="guess('A#')">A#</div>
+      <div class="black black-key" style="left: 184px;" onclick="guess('F#')">F#</div>
+      <div class="black black-key" style="left: 234px;" onclick="guess('G#')">G#</div>
+      <div class="black black-key" style="left: 284px;" onclick="guess('A#')">A#</div>
     </div>
 
     <div class="result" id="result"></div>
@@ -194,6 +221,10 @@
 }).toDestination();
 
     let currentAnswer = "";
+	let currentNote = "";
+	let includeBlackKeys = true;
+	let minMidi = 48; // C3
+    let maxMidi = 96; // C7
     let total = 0;
     let correct = 0;
 
@@ -202,21 +233,88 @@
     }
 
     function playNote(noteName) {
-  sampler.triggerAttackRelease(noteName, 2);
-}
+      sampler.triggerAttackRelease(noteName, 2);
+    }
     function playRandomNote() {
       document.getElementById("result").textContent = "";
 
       // C3(48) ～ C7(96)
-      const midi = Math.floor(Math.random() * (96 - 48 + 1)) + 48;
+      let midi;
+      let noteIndex;
 
-      const noteIndex = midi % 12;
+      while (true) {
+        midi = Math.floor(
+          Math.random() * (maxMidi - minMidi + 1)
+        ) + minMidi;
+
+        noteIndex = midi % 12;
+
+        // 白鍵だけモード
+        if (!includeBlackKeys) {
+          if ([0, 2, 4, 5, 7, 9, 11].includes(noteIndex)) {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
       currentAnswer = noteNames[noteIndex];
 
       const octave = Math.floor(midi / 12) - 1;
-const note = noteNames[noteIndex] + octave;
+      const note = noteNames[noteIndex] + octave;
 
-playNote(note);
+      currentNote = note;
+
+      playNote(note);
+    }
+	
+    function setMode(value) {
+      includeBlackKeys = value;
+
+      const result = document.getElementById("result");
+
+      const blackKeys = document.querySelectorAll(".black-key");
+
+      if (includeBlackKeys) {
+        result.textContent = "Mode: All Notes";
+
+        blackKeys.forEach(key => {
+          key.style.opacity = "1";
+          key.style.pointerEvents = "auto";
+        });
+
+      } else {
+        result.textContent = "Mode: White Keys Only";
+
+        blackKeys.forEach(key => {
+          key.style.opacity = "0.2";
+          key.style.pointerEvents = "none";
+        });
+      }
+
+      result.style.color = "#333";
+    }
+
+    function setRange(min, max) {
+      minMidi = min;
+      maxMidi = max;
+
+      const result = document.getElementById("result");
+
+      if (min === 48 && max === 59) {
+        result.textContent = "Range: Low";
+      }
+      else if (min === 60 && max === 71) {
+        result.textContent = "Range: Mid";
+      }
+      else if (min === 72 && max === 96) {
+        result.textContent = "Range: High";
+      }
+      else {
+        result.textContent = "Range: Full";
+      }
+
+      result.style.color = "#333";
     }
 
     function guess(note) {
@@ -235,6 +333,11 @@ playNote(note);
 
       document.getElementById("score").textContent =
         `Correct: ${correct} / ${total}`;
+    }
+	function replayNote() {
+      if (currentNote !== "") {
+        playNote(currentNote);
+      }
     }
   </script>
 </body>
