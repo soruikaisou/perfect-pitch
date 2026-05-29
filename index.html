@@ -153,6 +153,11 @@
 
       display: none;
     }
+	
+	.selected {
+      background: white;
+      border: 2px solid #222;
+    }
   </style>
 </head>
 
@@ -188,16 +193,45 @@
         value="0.8"
         onchange="setVolume(this.value)"
       >
+	  
+      <br><br>
+
+      <label>Note Duration</label>
+
+      <input
+        type="range"
+        min="0.3"
+        max="3"
+        step="0.1"
+        value="2"
+        onchange="setDuration(this.value)"
+      >
+	  
+	  <br><br>
+
+      <label>Reference C</label><br>
+
+      <button class="reference-btn selected"
+      onclick="setReference(false, this)">
+        OFF
+      </button>
+
+      <button class="reference-btn"
+      onclick="setReference(true, this)">
+        ON
+      </button>
 
       <br><br>
 
       <label>Note Mode</label><br>
 
-      <button onclick="setMode(false)">
+      <button class="mode-btn selected"
+      onclick="setMode(false, this)">
         White Only
       </button>
 
-      <button onclick="setMode(true)">
+      <button class="mode-btn"
+      onclick="setMode(true, this)">
         All Notes
       </button>
 
@@ -205,25 +239,57 @@
 
       <label>Range</label><br>
 
-      <button onclick="setRange(48, 59)">Low</button>
-      <button onclick="setRange(60, 71)">Mid</button>
-      <button onclick="setRange(72, 96)">High</button>
-      <button onclick="setRange(48, 96)">Full</button>
+      <button class="range-btn"
+      onclick="setRange(48, 59, this)">
+        Low
+      </button>
+
+      <button class="range-btn"
+      onclick="setRange(60, 71, this)">
+        Mid
+      </button>
+
+      <button class="range-btn"
+      onclick="setRange(72, 96, this)">
+        High
+      </button>
+
+      <button class="range-btn selected"
+      onclick="setRange(48, 96, this)">
+        Full
+      </button>
 
       <br><br>
 
       <label>Notation</label><br>
 
-      <button onclick="setNotation('english')">
+      <button class="notation-btn selected"
+      onclick="setNotation('english', this)">
         English
       </button>
 
-      <button onclick="setNotation('german')">
+      <button class="notation-btn"
+      onclick="setNotation('german', this)">
         German
       </button>
 
-      <button onclick="setNotation('italian')">
+      <button class="notation-btn"
+      onclick="setNotation('italian', this)">
         Italian
+      </button>
+	  
+	  <br><br>
+
+      <label>Sound</label><br>
+
+      <button class="sound-btn selected"
+      onclick="setSound('piano', this)">
+        Piano
+      </button>
+
+      <button class="sound-btn"
+      onclick="setSound('sine', this)">
+        Sine
       </button>
     </div>
 	
@@ -318,22 +384,58 @@
     let currentAnswer = "";
 	let currentNote = "";
 	let volume = 0.8;
+	let noteDuration = 2;
+	let playReferenceC = false;
 	let notation = "english";
 	let includeBlackKeys = true;
 	let minMidi = 48; // C3
     let maxMidi = 96; // C7
     let total = 0;
     let correct = 0;
+	let soundType = "piano";
 
     function midiToFreq(midi) {
       return 440 * Math.pow(2, (midi - 69) / 12);
     }
 
     function playNote(noteName) {
-      sampler.volume.value = Tone.gainToDb(volume);
 
-      sampler.triggerAttackRelease(noteName, 2);
+      if (soundType === "piano") {
+
+        sampler.volume.value =
+          Tone.gainToDb(volume);
+
+        sampler.triggerAttackRelease(
+          noteName,
+          noteDuration
+        );
+
+      } else if (soundType === "sine") {
+
+        playSineNote(noteName);
+
+      }
     }
+	
+	function playSineNote(noteName) {
+
+      const frequency =
+        Tone.Frequency(noteName).toFrequency();
+
+      const synth = new Tone.Synth({
+        oscillator: {
+          type: "sine"
+        }
+      }).toDestination();
+
+      synth.volume.value = Tone.gainToDb(volume);
+
+      synth.triggerAttackRelease(
+        frequency,
+        noteDuration
+      );
+    }
+
     function playRandomNote() {
       document.getElementById("result").textContent = "";
 
@@ -364,10 +466,21 @@
 
       currentNote = note;
 
+      if (playReferenceC) {
+
+      playNote("C4");
+
+      setTimeout(() => {
+        playNote(note);
+      }, 1200);
+
+    } else {
+
       playNote(note);
     }
+    }
 	
-    function setMode(value) {
+    function setMode(value, button) {
       includeBlackKeys = value;
 
       const result = document.getElementById("result");
@@ -375,6 +488,7 @@
       const blackKeys = document.querySelectorAll(".black-key");
 
       if (includeBlackKeys) {
+
         result.textContent = "Mode: All Notes";
 
         blackKeys.forEach(key => {
@@ -383,6 +497,7 @@
         });
 
       } else {
+
         result.textContent = "Mode: White Keys Only";
 
         blackKeys.forEach(key => {
@@ -392,16 +507,24 @@
       }
 
       result.style.color = "#333";
+
+      // ボタン色切り替え
+      document.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
     }
 
-    function setRange(min, max) {
+    function setRange(min, max, button) {
+
       minMidi = min;
       maxMidi = max;
 
       const result = document.getElementById("result");
 
       if (min === 48 && max === 59) {
-        result.textContent = "Range: Low";
+       result.textContent = "Range: Low";
       }
       else if (min === 60 && max === 71) {
         result.textContent = "Range: Mid";
@@ -414,6 +537,12 @@
       }
 
       result.style.color = "#333";
+
+      document.querySelectorAll(".range-btn").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
     }
 
     function guess(note) {
@@ -461,16 +590,50 @@
       }
     }
 	
-    function setNotation(type) {
+    function setNotation(type, button) {
+
       notation = type;
 
       const keys = document.querySelectorAll("[data-note]");
 
       keys.forEach(key => {
+
         const index = Number(key.dataset.note);
 
         key.textContent = noteLabels[type][index];
       });
+
+      document.querySelectorAll(".notation-btn").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
+    }
+	
+	function setDuration(value) {
+      noteDuration = value;
+    }
+	
+    function setReference(value, button) {
+
+      playReferenceC = value;
+
+      document.querySelectorAll(".reference-btn").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
+    }
+	
+	function setSound(type, button) {
+
+      soundType = type;
+
+      document.querySelectorAll(".sound-btn").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
     }
   </script>
 </body>
